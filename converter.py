@@ -8,7 +8,6 @@ SIZE = (172, 320)
 RESAMPLE = Image.Resampling.LANCZOS
 BACKGROUND = (0, 0, 0)  # shown behind transparent pixels and pad bars
 
-
 def load_reduced(path, size):
     with Image.open(path) as img:
         img.draft("RGB", size)  # scaled JPEG decode (no-op for PNG); must precede pixel access
