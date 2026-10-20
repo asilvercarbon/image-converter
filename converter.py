@@ -32,6 +32,19 @@ def to_rgb565(img, endian):
     # uint16 before shifting, or r << 11 overflows uint8
     rgb = np.asarray(img, dtype=np.uint16)
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+
+    # if we got 8 bits per channel
+    # 00000000 00000000 00000000
+    # RRRRRRRR GGGGGGGG BBBBBBBB
+    # CONVERT TO RGB565
+    # 000RRRRR 00GGGGGG 000BBBBB
+    # RRRRR
+    # GGGGGG
+    # BBBBB
+    # To create RGB565
+    # RRRRR GGGGGG BBBBB
+    # This is a single pixel in our picture
+
     packed = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3)
     return packed.astype(endian + "u2").tobytes()
 
@@ -47,12 +60,20 @@ def main():
     endian = ">" if args.endian == "big" else "<"
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
+
+    frames = []
+    total = b''
+    
     for path in args.inputs:
         img = resize(load_reduced(path, SIZE), SIZE, args.fit)
         data = to_rgb565(img, endian)
-        out = args.out_dir / (path.stem + ".bin")
-        out.write_bytes(data)
-        print(f"{path} -> {out} ({len(data)} bytes)")
+        frames.append(data)
+        total = b"".join(frames)
+
+    out = args.out_dir / (path.stem + ".bin")
+    with open(out, 'wb') as f:
+        f.write(total)
+        print(f"{path} -> {out} ({len(total)} bytes)")
 
 
 if __name__ == "__main__":
